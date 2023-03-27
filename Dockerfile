@@ -27,6 +27,7 @@ RUN yarn install --prod
 COPY --from=builder /app/dist ./dist
 
 COPY ./src/mail/templates/ ./dist/mail/templates/
+
 # # Copiar el directorio y su contenido
 # RUN mkdir -p ./pokedex
 

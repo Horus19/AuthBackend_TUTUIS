@@ -1,16 +1,24 @@
-import { Body, Controller, Get, Headers, Post, UseGuards } from "@nestjs/common";
-import { AuthService } from "./auth.service";
-import { CreateUserDto, LoginUserDto } from "./dto";
-import { AuthGuard } from "@nestjs/passport";
-import { GetUser } from "./decorators/get-user.decorator";
-import { User } from "./entities/user.entity";
-import { GetRawHeaders } from "./decorators/raw-headers.decorator";
-import { IncomingHttpHeaders } from "http2";
-import { UserRoleGuard } from "./guards/user-role/user-role.guard";
-import { RoleProtected } from "./decorators/role-protected.decorator";
-import { ValidRoles } from "./interfaces/valid-roles";
-import { Auth } from "./decorators/auth.decorator";
-
+import {
+  Body,
+  Controller,
+  Get,
+  Headers,
+  Param,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
+import { AuthService } from './auth.service';
+import { CreateUserDto, LoginUserDto } from './dto';
+import { AuthGuard } from '@nestjs/passport';
+import { GetUser } from './decorators/get-user.decorator';
+import { User } from './entities/user.entity';
+import { GetRawHeaders } from './decorators/raw-headers.decorator';
+import { IncomingHttpHeaders } from 'http2';
+import { UserRoleGuard } from './guards/user-role/user-role.guard';
+import { RoleProtected } from './decorators/role-protected.decorator';
+import { ValidRoles } from './interfaces/valid-roles';
+import { Auth } from './decorators/auth.decorator';
+import { ChangePasswordDto } from './dto/change-password.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -28,20 +36,32 @@ export class AuthController {
 
   @Get('check-auth-status')
   @Auth()
-  checkAuthStatus(
-    @GetUser() user : User,
-  ) {
+  checkAuthStatus(@GetUser() user: User) {
     return this.authService.checkAuthStatus(user);
   }
 
-  @Get('private')
-  @UseGuards( AuthGuard() )
+  @Get('activar-usuario/:token')
+  activarUsuario(@Param('token') token: string) {
+    return this.authService.activateUser(token);
+  }
 
+  //Método para cambiar contraseña
+  @Post('cambiar-contrasena')
+  @Auth()
+  cambiarContrasena(
+    @GetUser() user: User,
+    @Body() changePasswordDto: ChangePasswordDto,
+  ) {
+    return this.authService.changePassword(user.id, changePasswordDto);
+  }
+
+  @Get('private')
+  @UseGuards(AuthGuard())
   testingPrivateRoute(
-    @GetUser() user : User,
-    @GetUser('email') email : string,
-    @GetRawHeaders() rawHeaders : string[],
-    @Headers() headers : IncomingHttpHeaders
+    @GetUser() user: User,
+    @GetUser('email') email: string,
+    @GetRawHeaders() rawHeaders: string[],
+    @Headers() headers: IncomingHttpHeaders,
   ) {
     return {
       message: 'This is a private route',
@@ -49,16 +69,14 @@ export class AuthController {
       user,
       email,
       rawHeaders,
-      headers
+      headers,
     };
-
   }
-
 
   @Get('private2')
   // @SetMetadata('roles', ['admin', 'user'])
-  @RoleProtected( ValidRoles.ADMIN, ValidRoles.USER)
-  @UseGuards( AuthGuard(), UserRoleGuard )
+  @RoleProtected(ValidRoles.ADMIN, ValidRoles.USER)
+  @UseGuards(AuthGuard(), UserRoleGuard)
   privateRoute2() {
     return {
       message: 'This is a private route 2',
@@ -67,13 +85,11 @@ export class AuthController {
   }
 
   @Get('private3')
-  @Auth( ValidRoles.ADMIN, ValidRoles.USER)
+  @Auth(ValidRoles.ADMIN, ValidRoles.USER)
   privateRoute3() {
     return {
       message: 'This is a private route 3',
       ok: true,
     };
   }
-
 }
-

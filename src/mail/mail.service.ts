@@ -1,5 +1,6 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
-import { ISendMailOptions, MailerService } from "@nestjs-modules/mailer";
+import { Injectable, InternalServerErrorException, NotFoundException } from "@nestjs/common";
+import { ISendMailOptions, MailerService } from '@nestjs-modules/mailer';
+import { BienvenidaDto } from './dto/bienvenida.dto';
 
 @Injectable()
 export class MailService {
@@ -9,22 +10,21 @@ export class MailService {
     await this.mailerService.sendMail(sendMailOptions);
   }
 
-  async sendWelcomeEmail() {
+  async sendWelcomeEmail(bienvenidaDto: BienvenidaDto) {
     try {
       await this.mailerService.sendMail({
         from: 'admin@tutuis.com',
-        to: 'camacho19992012@gmail.com',
-        subject: 'Welcome to Tutuis 2',
+        to: bienvenidaDto.email,
+        subject: 'Bienvenid@ a Tutuis',
         template: 'Bienvenida',
         context: {
-          'nombre': 'Horacio',
-          'url_confirmacion': 'http://google.com',
-          'sitio_web': 'http://tutuis.com',
-        }
+          nombre: bienvenidaDto.fullName,
+          url_confirmacion: bienvenidaDto.url_confirmacion,
+        },
       });
     } catch (e) {
       console.log(e);
-      throw new NotFoundException;
+      throw new InternalServerErrorException(e);
     }
   }
 }

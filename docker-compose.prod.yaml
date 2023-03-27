@@ -1,37 +1,43 @@
 version: '3'
 
 services:
-  apppostgres:
+  authbackend:
     depends_on:
       - db
     build:
       context: .
       dockerfile: Dockerfile
-    image: apppostgres-docker
-    container_name: apppostgres
+    container_name: AuthBackend
     restart: always # reiniciar el contenedor si se detiene
     ports:
       - "${PORT}:${PORT}"
-    # working_dir: /var/www/pokedex
     environment:
-      DB_HOST: ${DB_HOST}
+      DB_HOST: db
       DB_USERNAME: ${DB_USERNAME}
       DB_PASSWORD: ${DB_PASSWORD}
       DB_NAME: ${DB_NAME}
       DB_PORT: ${DB_PORT}
-      JWT_SECRET : ${JWT_SECRET}
-      JWT_EXPIRES_IN : ${JWT_EXPIRES_IN}
-    # volumes:
-    #   - ./:/var/www/pokedex
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN}
+      MAILGUN_USERNAME: ${MAILGUN_USERNAME}
+      MAILGUN_PASSWORD: ${MAILGUN_PASSWORD}
+      BASE_URL: ${BASE_URL}
+    networks:
+      - backend
 
   db:
     image: postgres:14.3
     restart: always
     environment:
+      POSTGRES_USER: ${DB_USERNAME}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: ${DB_NAME}
-    container_name: teslodb
-#    volumes:
-#      - ./postgres-data:/var/lib/postgresql/data
+    container_name: tutuisdb
     ports:
       - "5432:5432"
+    networks:
+      - backend
+
+networks:
+  backend:
+    driver: bridge

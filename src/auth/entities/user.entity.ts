@@ -1,9 +1,15 @@
-import { AfterInsert, BeforeInsert, BeforeUpdate, Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
-import { Product } from "../../products/entities/product.entity";
+import {
+  AfterInsert,
+  BeforeInsert,
+  BeforeUpdate,
+  Column,
+  Entity,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
 @Entity('users')
 export class User {
-  
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
@@ -11,7 +17,7 @@ export class User {
     unique: true,
   })
   email: string;
-  @Column('text',{
+  @Column('text', {
     select: false,
   })
   password: string;
@@ -20,7 +26,7 @@ export class User {
   fullName: string;
 
   @Column('bool', {
-    default: true,
+    default: false,
   })
   isActivate: boolean;
 
@@ -28,14 +34,15 @@ export class User {
     array: true,
     default: ['user'],
   })
-  roles : string[];
+  roles: string[];
 
-  @OneToMany(
-    () => Product,
-    (product) => product.user,
-  )
-  products: Product[];
+  @Column('text', {
+    nullable: true,
+  })
+  validationToken: string;
 
+  // @OneToMany(() => Product, (product) => product.user)
+  // products: Product[];
 
   @BeforeInsert()
   emailToLowerCase() {
