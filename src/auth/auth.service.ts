@@ -15,6 +15,7 @@ import { JwtPayload } from './interfaces/jwt-payload.interface';
 import { JwtService } from '@nestjs/jwt';
 import { MailService } from '../mail/mail.service';
 import { ChangePasswordDto } from './dto/change-password.dto';
+import axios from 'axios';
 
 @Injectable()
 export class AuthService {
@@ -39,13 +40,20 @@ export class AuthService {
       const validationToken = await this.createAuthToken(user.email);
       user.validationToken = validationToken;
       await this.userRepository.save(user);
-      const confirmationUrl = `${process.env.BASE_URL}/auth/activar-usuario/${validationToken}`;
+      const confirmationUrl = `http://${process.env.BASE_URL}/auth/activar-usuario/${validationToken}`;
       const token = this.getJwtToken({ id: user.id });
-      await this.mailerService.sendWelcomeEmail({
+      // await this.mailerService.sendWelcomeEmail({
+      //   email: user.email,
+      //   fullName: user.fullName,
+      //   url_confirmacion: confirmationUrl,
+      // });
+
+      await axios.post('http://172.18.0.2:3002/send-welcome-email', {
         email: user.email,
         fullName: user.fullName,
         url_confirmacion: confirmationUrl,
       });
+
       return {
         ...user,
         token,
@@ -72,24 +80,27 @@ export class AuthService {
 
     const user = await this.userRepository.findOne({
       where: { email },
-      select: ['id', 'email', 'password', 'isActivate'],
+      select: ['id', 'email', 'password', 'isActivate', 'fullName'],
     });
 
     if (!user || !bcrypt.compareSync(password, user.password)) {
-      throw new UnauthorizedException(
-        'Credenciales inválidas, usuario o contraseña incorrectos',
-      );
+      return {
+        ok: false,
+        message: 'Credenciales inválidas, usuario o contraseña incorrectos',
+      };
     }
 
     if (!user.isActivate) {
-      throw new UnauthorizedException(
-        `Su cuenta aún no está activada. Por favor, revise su correo electrónico y haga clic en el enlace de confirmación para activar su cuenta. Si no recibió el correo electrónico, revise su carpeta de spam o solicite uno nuevo desde la página de inicio de sesión.`,
-      );
+      return {
+        ok: false,
+        message: `Su cuenta aún no está activada. Por favor, revise su correo electrónico y haga clic en el enlace de confirmación para activar su cuenta. Si no recibió el correo electrónico, revise su carpeta de spam o solicite uno nuevo desde la página de inicio de sesión.`,
+      };
     }
 
     delete user.password;
 
     return {
+      ok: true,
       ...user,
       token: this.getJwtToken({ id: user.id }),
     };
@@ -143,8 +154,11 @@ export class AuthService {
     }
   }
 
+  // TODO: implementar logica de checkAuthStatus
+
   async checkAuthStatus(user: User) {
     return {
+      ok: true,
       ...user,
       token: this.getJwtToken({ id: user.id }),
     };
