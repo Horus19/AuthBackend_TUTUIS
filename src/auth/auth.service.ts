@@ -13,9 +13,9 @@ import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { JwtPayload } from './interfaces/jwt-payload.interface';
 import { JwtService } from '@nestjs/jwt';
-import { MailService } from '../mail/mail.service';
 import { ChangePasswordDto } from './dto/change-password.dto';
-import axios from 'axios';
+
+import { RabbitMQService } from './rabbit-mq/rabbit-mq.service';
 
 @Injectable()
 export class AuthService {
@@ -25,7 +25,7 @@ export class AuthService {
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     private readonly jwtService: JwtService,
-    private readonly mailerService: MailService,
+    private readonly rabbitMQService: RabbitMQService,
   ) {}
 
   // Por defecto usuarios inactivos
@@ -42,18 +42,14 @@ export class AuthService {
       await this.userRepository.save(user);
       const confirmationUrl = `http://${process.env.BASE_URL}/auth/activar-usuario/${validationToken}`;
       const token = this.getJwtToken({ id: user.id });
-      // await this.mailerService.sendWelcomeEmail({
-      //   email: user.email,
-      //   fullName: user.fullName,
-      //   url_confirmacion: confirmationUrl,
-      // });
-
-      await axios.post('http://172.18.0.2:3002/send-welcome-email', {
-        email: user.email,
-        fullName: user.fullName,
-        url_confirmacion: confirmationUrl,
-      });
-
+      await this.rabbitMQService.sendMessage(
+        'send-welcome-email',
+        JSON.stringify({
+          email: user.email,
+          fullName: user.fullName,
+          url_confirmacion: confirmationUrl,
+        }),
+      );
       return {
         ...user,
         token,
