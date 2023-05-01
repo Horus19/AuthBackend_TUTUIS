@@ -28,7 +28,7 @@ import { ConfigModule } from '@nestjs/config';
     }),
     MailerModule.forRoot({
       transport: {
-        host: 'smtp.mailgun.org',
+        host: process.env.MAIL_HOST,
         port: 587,
         auth: {
           user: process.env.MAILGUN_USERNAME,
