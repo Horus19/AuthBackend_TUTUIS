@@ -19,17 +19,25 @@ import { RoleProtected } from './decorators/role-protected.decorator';
 import { ValidRoles } from './interfaces/valid-roles';
 import { Auth } from './decorators/auth.decorator';
 import { ChangePasswordDto } from './dto/change-password.dto';
+import { ApiParam, ApiProperty, ApiResponse, ApiTags } from '@nestjs/swagger';
 
+@ApiTags('auth')
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('register')
+  @ApiResponse({ status: 201, description: 'Usuario registrado correctamente', type: User})
+  @ApiResponse({ status: 400, description: 'Bad request'})
+  @ApiResponse({ status: 500, description: 'Internal server error'})
   create(@Body() createUserDto: CreateUserDto) {
     return this.authService.create(createUserDto);
   }
 
   @Post('login')
+  @ApiResponse({ status: 200, description: 'Usuario logueado correctamente', type: User})
+  @ApiResponse({ status: 401, description: 'Unauthorized'})
+  @ApiResponse({ status: 500, description: 'Internal server error'})
   login(@Body() loginUserDto: LoginUserDto) {
     return this.authService.login(loginUserDto);
   }
@@ -40,7 +48,12 @@ export class AuthController {
     return this.authService.checkAuthStatus(user);
   }
 
+
   @Get('activar-usuario/:token')
+  @ApiResponse({ status: 200, description: 'Usuario activado correctamente', type: User})
+  @ApiResponse({ status: 401, description: 'Unauthorized, token invalido'})
+  @ApiResponse({ status: 500, description: 'Internal server error'})
+  @ApiParam({ name: 'token', type: String, required: true, description: 'Token de validación', example: '123456789'})
   activarUsuario(@Param('token') token: string) {
     return this.authService.activateUser(token);
   }
@@ -55,41 +68,51 @@ export class AuthController {
     return this.authService.changePassword(user.id, changePasswordDto);
   }
 
-  @Get('private')
-  @UseGuards(AuthGuard())
-  testingPrivateRoute(
-    @GetUser() user: User,
-    @GetUser('email') email: string,
-    @GetRawHeaders() rawHeaders: string[],
-    @Headers() headers: IncomingHttpHeaders,
-  ) {
-    return {
-      message: 'This is a private route',
-      ok: true,
-      user,
-      email,
-      rawHeaders,
-      headers,
-    };
+  /// Metodo para bloquear/ desbloquear usuario
+  @Post('bloquear-usuario/:id')
+  @ApiResponse({ status: 200, description: 'Usuario bloqueado/desbloqueado correctamente', type: User})
+  @ApiResponse({ status: 401, description: 'Unauthorized'})
+  @ApiResponse({ status: 500, description: 'Internal server error'})
+  @Auth(ValidRoles.ADMIN)
+  bloquearUsuario(@Param('id') id: string) {
+    return this.authService.blockUser(id);
   }
 
-  @Get('private2')
+  // @Get('private')
+  // @UseGuards(AuthGuard())
+  // testingPrivateRoute(
+  //   @GetUser() user: User,
+  //   @GetUser('email') email: string,
+  //   @GetRawHeaders() rawHeaders: string[],
+  //   @Headers() headers: IncomingHttpHeaders,
+  // ) {
+  //   return {
+  //     message: 'This is a private route',
+  //     ok: true,
+  //     user,
+  //     email,
+  //     rawHeaders,
+  //     headers,
+  //   };
+  // }
+
+  // @Get('private2')
   // @SetMetadata('roles', ['admin', 'user'])
-  @RoleProtected(ValidRoles.ADMIN, ValidRoles.USER)
-  @UseGuards(AuthGuard(), UserRoleGuard)
-  privateRoute2() {
-    return {
-      message: 'This is a private route 2',
-      ok: true,
-    };
-  }
+  // @RoleProtected(ValidRoles.ADMIN, ValidRoles.USER)
+  // @UseGuards(AuthGuard(), UserRoleGuard)
+  // privateRoute2() {
+  //   return {
+  //     message: 'This is a private route 2',
+  //     ok: true,
+  //   };
+  // }
 
-  @Get('private3')
-  @Auth(ValidRoles.ADMIN, ValidRoles.USER)
-  privateRoute3() {
-    return {
-      message: 'This is a private route 3',
-      ok: true,
-    };
-  }
+  // @Get('private3')
+  // @Auth(ValidRoles.ADMIN, ValidRoles.USER)
+  // privateRoute3() {
+  //   return {
+  //     message: 'This is a private route 3',
+  //     ok: true,
+  //   };
+  // }
 }

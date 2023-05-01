@@ -59,10 +59,13 @@ export class AuthService {
     }
   }
 
+  ///Metodo para crear el token de validacion
   private getJwtToken(payload: JwtPayload) {
     return this.jwtService.sign(payload);
   }
 
+
+  ///Metodo para manejar los errores
   private handleError(error: Error): never {
     this.logger.error(error.message, error.stack);
     throw new InternalServerErrorException(
@@ -71,6 +74,7 @@ export class AuthService {
     );
   }
 
+  ///Metodo para manejar el login
   async login(loginUserDto: LoginUserDto) {
     const { email, password } = loginUserDto;
 
@@ -124,7 +128,8 @@ export class AuthService {
       token: this.getJwtToken({ id: user.id }),
     };
   }
-  // Activar usuario
+
+  /// Metodo para activar el usuario
   async activateUser(token: string) {
     if (!token) {
       throw new BadRequestException('Token no proporcionado');
@@ -150,8 +155,21 @@ export class AuthService {
     }
   }
 
-  // TODO: implementar logica de checkAuthStatus
-
+  ///Metodo para bloquear o desbloquear el usuario
+  async blockUser(id: string) {
+    const user = await this.userRepository.findOne({
+      where: { id }});  
+    if (!user) {
+      throw new UnauthorizedException('Usuario no encontrado');
+    }
+    user.isActivate = !user.isActivate;
+    await this.userRepository.save(user);
+    return {
+      ...user,
+    };
+  }
+ 
+  ///Metodo para verificar el estado de la autenticacion
   async checkAuthStatus(user: User) {
     return {
       ok: true,
@@ -160,13 +178,14 @@ export class AuthService {
     };
   }
 
-  //Creacion de token para validar usuario
+  ///Metodo para crear el token de validacion
   async createAuthToken(email: string): Promise<string> {
     const payload = { email };
     const options = { expiresIn: '2h' }; // token expira en 2 horas
     return this.jwtService.signAsync(payload, options);
   }
 
+  ///Metodo para verificar el token
   async verifyToken(token: string): Promise<boolean> {
     try {
       await this.jwtService.verifyAsync(token);
