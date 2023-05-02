@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { connect, Channel } from 'amqplib';
+import * as process from "process";
 
 @Injectable()
 export class RabbitMQService {
@@ -10,7 +11,8 @@ export class RabbitMQService {
   }
 
   async connectToRabbitMQ() {
-    const connection = await connect('amqp://rabbitmq');
+    // const connection = await connect('amqp://rabbitmq');
+    const connection = await connect(process.env.RABBIT_HOST);
     this.channel = await connection.createChannel();
   }
 

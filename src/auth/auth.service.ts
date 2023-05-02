@@ -33,7 +33,7 @@ export class AuthService {
     try {
       const { password, ...userData } = createAuthDto;
       const hashedPassword = await bcrypt.hash(password, 10);
-      const user = this.userRepository.create({
+      const user: User = this.userRepository.create({
         ...userData,
         password: hashedPassword,
       });
@@ -60,10 +60,9 @@ export class AuthService {
   }
 
   ///Metodo para crear el token de validacion
-  private getJwtToken(payload: JwtPayload) {
+  getJwtToken(payload: JwtPayload) {
     return this.jwtService.sign(payload);
   }
-
 
   ///Metodo para manejar los errores
   private handleError(error: Error): never {
@@ -75,7 +74,7 @@ export class AuthService {
   }
 
   ///Metodo para manejar el login
-  async login(loginUserDto: LoginUserDto) {
+  async login(loginUserDto: LoginUserDto): Promise<LoginResponse> {
     const { email, password } = loginUserDto;
 
     const user = await this.userRepository.findOne({
@@ -158,17 +157,18 @@ export class AuthService {
   ///Metodo para bloquear o desbloquear el usuario
   async blockUser(id: string) {
     const user = await this.userRepository.findOne({
-      where: { id }});  
+      where: { id },
+    });
     if (!user) {
       throw new UnauthorizedException('Usuario no encontrado');
     }
-    user.isActivate = !user.isActivate;
+    user.isBlocked = !user.isBlocked;
     await this.userRepository.save(user);
     return {
       ...user,
     };
   }
- 
+
   ///Metodo para verificar el estado de la autenticacion
   async checkAuthStatus(user: User) {
     return {

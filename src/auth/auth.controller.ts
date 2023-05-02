@@ -27,19 +27,27 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('register')
-  @ApiResponse({ status: 201, description: 'Usuario registrado correctamente', type: User})
-  @ApiResponse({ status: 400, description: 'Bad request'})
-  @ApiResponse({ status: 500, description: 'Internal server error'})
+  @ApiResponse({
+    status: 201,
+    description: 'Usuario registrado correctamente',
+    type: User,
+  })
+  @ApiResponse({ status: 400, description: 'Bad request' })
+  @ApiResponse({ status: 500, description: 'Internal server error' })
   create(@Body() createUserDto: CreateUserDto) {
     return this.authService.create(createUserDto);
   }
 
   @Post('login')
-  @ApiResponse({ status: 200, description: 'Usuario logueado correctamente', type: User})
-  @ApiResponse({ status: 401, description: 'Unauthorized'})
-  @ApiResponse({ status: 500, description: 'Internal server error'})
-  login(@Body() loginUserDto: LoginUserDto) {
-    return this.authService.login(loginUserDto);
+  @ApiResponse({
+    status: 200,
+    description: 'Usuario logueado correctamente',
+    type: User,
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 500, description: 'Internal server error' })
+  async login(@Body() loginUserDto: LoginUserDto): Promise<LoginResponse> {
+    return await this.authService.login(loginUserDto);
   }
 
   @Get('check-auth-status')
@@ -48,12 +56,21 @@ export class AuthController {
     return this.authService.checkAuthStatus(user);
   }
 
-
   @Get('activar-usuario/:token')
-  @ApiResponse({ status: 200, description: 'Usuario activado correctamente', type: User})
-  @ApiResponse({ status: 401, description: 'Unauthorized, token invalido'})
-  @ApiResponse({ status: 500, description: 'Internal server error'})
-  @ApiParam({ name: 'token', type: String, required: true, description: 'Token de validación', example: '123456789'})
+  @ApiResponse({
+    status: 200,
+    description: 'Usuario activado correctamente',
+    type: User,
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized, token invalido' })
+  @ApiResponse({ status: 500, description: 'Internal server error' })
+  @ApiParam({
+    name: 'token',
+    type: String,
+    required: true,
+    description: 'Token de validación',
+    example: '123456789',
+  })
   activarUsuario(@Param('token') token: string) {
     return this.authService.activateUser(token);
   }
@@ -70,9 +87,13 @@ export class AuthController {
 
   /// Metodo para bloquear/ desbloquear usuario
   @Post('bloquear-usuario/:id')
-  @ApiResponse({ status: 200, description: 'Usuario bloqueado/desbloqueado correctamente', type: User})
-  @ApiResponse({ status: 401, description: 'Unauthorized'})
-  @ApiResponse({ status: 500, description: 'Internal server error'})
+  @ApiResponse({
+    status: 200,
+    description: 'Usuario bloqueado/desbloqueado correctamente',
+    type: User,
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 500, description: 'Internal server error' })
   @Auth(ValidRoles.ADMIN)
   bloquearUsuario(@Param('id') id: string) {
     return this.authService.blockUser(id);
