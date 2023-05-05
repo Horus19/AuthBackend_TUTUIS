@@ -85,7 +85,13 @@ export class AuthController {
     return this.authService.changePassword(user.id, changePasswordDto);
   }
 
-  /// Metodo para bloquear/ desbloquear usuario
+  /**
+   * Peticion para bloquear/desbloquear usuario
+   * necesita el id del usuario y un usuario autenticado con el rol de administrador
+   * @param id
+   * @header Authorization
+   * @returns usuario bloqueado/desbloqueado correctamente
+   */
   @Post('bloquear-usuario/:id')
   @ApiResponse({
     status: 200,

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { connect, Channel } from 'amqplib';
-import * as process from "process";
+import * as process from 'process';
 
 @Injectable()
 export class RabbitMQService {

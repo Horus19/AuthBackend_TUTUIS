@@ -28,7 +28,12 @@ export class AuthService {
     private readonly rabbitMQService: RabbitMQService,
   ) {}
 
-  // Por defecto usuarios inactivos
+  /**
+   * Metodo asincrono encargado de crear un nuevo usuario en la base de datos
+   *  y enviar un correo electrónico de bienvenida al usuario recién registrado.
+   * @param createAuthDto
+   * @returns Usuario creado y token de autenticación
+   */
   async create(createAuthDto: CreateUserDto) {
     try {
       const { password, ...userData } = createAuthDto;
@@ -59,12 +64,19 @@ export class AuthService {
     }
   }
 
-  ///Metodo para crear el token de validacion
+  /**
+   *
+   * @param payload
+   * @returns
+   */
   getJwtToken(payload: JwtPayload) {
     return this.jwtService.sign(payload);
   }
 
-  ///Metodo para manejar los errores
+  /**
+   *
+   * @param error
+   */
   private handleError(error: Error): never {
     this.logger.error(error.message, error.stack);
     throw new InternalServerErrorException(
@@ -105,7 +117,12 @@ export class AuthService {
     };
   }
 
-  //Metodo para cambiar la contraseña, recibe como argumento el id del usuario,  la contraseña y la nueva contraseña
+  /**
+   * Metodo para cambiar la contraseña del usuario
+   * @param id
+   * @param changePasswordDto
+   * @returns usuario con la contraseña cambiada
+   */
   async changePassword(id: string, changePasswordDto: ChangePasswordDto) {
     const user = await this.userRepository.findOne({
       where: { id },
@@ -128,7 +145,11 @@ export class AuthService {
     };
   }
 
-  /// Metodo para activar el usuario
+  /**
+   * Metodo para activar el usuario
+   * @param token
+   * @returns usuario activado
+   */
   async activateUser(token: string) {
     if (!token) {
       throw new BadRequestException('Token no proporcionado');
@@ -154,7 +175,11 @@ export class AuthService {
     }
   }
 
-  ///Metodo para bloquear o desbloquear el usuario
+  /**
+   *  Metodo encargado de bloquear o desbloquear un usuario
+   * @param id
+   * @returns usuario bloqueado/desbloqueado
+   */
   async blockUser(id: string) {
     const user = await this.userRepository.findOne({
       where: { id },
