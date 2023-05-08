@@ -8,7 +8,7 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { ValidRoles } from "../interfaces/valid-roles";
+import { ValidRoles } from '../interfaces/valid-roles';
 
 @Entity('users')
 export class User {

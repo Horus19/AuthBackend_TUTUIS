@@ -91,7 +91,7 @@ export class AuthService {
 
     const user = await this.userRepository.findOne({
       where: { email },
-      select: ['id', 'email', 'password', 'isActivate', 'fullName'],
+      select: ['id', 'email', 'password', 'isActivate', 'fullName', 'roles'],
     });
 
     if (!user || !bcrypt.compareSync(password, user.password)) {
