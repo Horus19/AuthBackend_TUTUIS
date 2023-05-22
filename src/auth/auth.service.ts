@@ -219,4 +219,48 @@ export class AuthService {
       return false;
     }
   }
+
+  /**
+   * Envia un correo electrónico al usuario con una nueva contraseña generada aleatoriamente.
+   * @param email
+   */
+  async forgotPassword(email: string) {
+    const user = await this.userRepository.findOne({
+      where: { email },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('Usuario no encontrado');
+    }
+
+    const newPassword = this.generateRandomPassword();
+    user.password = await bcrypt.hash(newPassword, 10);
+    await this.userRepository.save(user);
+
+    await this.rabbitMQService.sendMessage(
+      'send-forgot-password-email',
+      JSON.stringify({
+        email: user.email,
+        fullName: user.fullName,
+        newPassword,
+      }),
+    );
+  }
+
+  /**
+   * Genera una contraseña aleatoria.
+   * @returns contraseña aleatoria
+   * @private
+   */
+  private generateRandomPassword() {
+    const length = 8;
+    const characters =
+      'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let password = '';
+    for (let i = 0; i < length; i++) {
+      const randomIndex = Math.floor(Math.random() * characters.length);
+      password += characters.charAt(randomIndex);
+    }
+    return password;
+  }
 }

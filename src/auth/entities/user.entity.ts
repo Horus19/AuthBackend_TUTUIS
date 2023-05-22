@@ -5,12 +5,11 @@ import {
   BeforeUpdate,
   Column,
   Entity,
-  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { ValidRoles } from '../interfaces/valid-roles';
 
-@Entity('users')
+@Entity({ name: 'users', synchronize: false })
 export class User {
   @ApiProperty({
     example: 'c2fc71ee-e969-4083-8423-b363ec064326',
@@ -80,7 +79,6 @@ export class User {
     default: false,
   })
   isBlocked: boolean;
-
   // @OneToMany(() => Product, (product) => product.user)
   // products: Product[];
 

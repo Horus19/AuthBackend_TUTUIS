@@ -3,10 +3,10 @@ import {
   Controller,
   Get,
   Headers,
-  Param,
+  Param, Patch,
   Post,
-  UseGuards,
-} from '@nestjs/common';
+  UseGuards
+} from "@nestjs/common";
 import { AuthService } from './auth.service';
 import { CreateUserDto, LoginUserDto } from './dto';
 import { AuthGuard } from '@nestjs/passport';
@@ -105,6 +105,10 @@ export class AuthController {
     return this.authService.blockUser(id);
   }
 
+  @Patch('forgot-password/:email')
+  forgotPassword(@Param('email') email: string) {
+    return this.authService.forgotPassword(email);
+  }
   // @Get('private')
   // @UseGuards(AuthGuard())
   // testingPrivateRoute(
